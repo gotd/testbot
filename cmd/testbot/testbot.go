@@ -10,6 +10,7 @@ import (
 	"github.com/go-faster/errors"
 	"github.com/gotd/td/session"
 	"github.com/gotd/td/telegram"
+	"github.com/gotd/td/telegram/message"
 	"github.com/gotd/td/tg"
 	bolt "go.etcd.io/bbolt"
 	"go.uber.org/multierr"
@@ -47,15 +48,25 @@ func run(ctx context.Context, lg *zap.Logger) (rerr error) {
 	}()
 
 	dispatcher := tg.NewUpdateDispatcher()
-	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, update *tg.UpdateNewMessage) error {
-		return nil
-	})
 	client := telegram.NewClient(appID, appHash, telegram.Options{
 		Logger:        lg.Named("client"),
 		UpdateHandler: dispatcher,
 		SessionStorage: &session.FileStorage{
 			Path: filepath.Join(sessionDir, "session.json"),
 		},
+	})
+	api := client.API()
+	sender := message.NewSender(api)
+	dispatcher.OnNewMessage(func(ctx context.Context, e tg.Entities, u *tg.UpdateNewMessage) error {
+		m, ok := u.Message.(*tg.Message)
+		if !ok || m.Out {
+			// Outgoing message, not interesting.
+			return nil
+		}
+
+		// Sending reply.
+		_, err := sender.Reply(e, u).Text(ctx, m.Message)
+		return err
 	})
 	return client.Run(ctx, func(ctx context.Context) error {
 		lg.Debug("Client initialized")
