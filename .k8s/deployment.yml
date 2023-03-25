@@ -32,6 +32,8 @@ spec:
               cpu: 400m
               memory: 128M
           env:
+            - name: OTEL_LOG_LEVEL
+              value: debug
             - name: HOME
               value: /cache
             - name: BOT_TOKEN
