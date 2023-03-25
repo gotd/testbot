@@ -71,10 +71,12 @@ func run(ctx context.Context, lg *zap.Logger) (rerr error) {
 				return errors.Wrap(err, "login")
 			}
 			// Refresh auth status.
-			status, err = au.Status(ctx)
-			if err != nil {
+			if status, err = au.Status(ctx); err != nil {
 				return errors.Wrap(err, "auth status")
 			}
+			lg.Info("Logged in as bot",
+				zap.String("name", status.User.Username),
+			)
 		} else {
 			lg.Info("Bot login restored",
 				zap.String("name", status.User.Username),
