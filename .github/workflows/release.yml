@@ -96,4 +96,4 @@ jobs:
       - name: Deploy
         run: |
           /tmp/kubectl apply -f .k8s/deployment.release.yml
-          /tmp/kubectl -n faster rollout status deployment/bot
+          /tmp/kubectl -n gotd-sandbox rollout status deployment/testbot
