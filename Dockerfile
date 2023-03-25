@@ -1,5 +1,5 @@
 FROM gcr.io/distroless/static
 
-ADD bot /usr/local/bin/bot
+ADD testbot /usr/local/bin/testbot
 
-ENTRYPOINT ["bot"]
+ENTRYPOINT ["testbot"]
