@@ -34,13 +34,13 @@ jobs:
         run: |
           echo "cache=$(go env GOCACHE)" >> $GITHUB_ENV
           echo "modcache=$(go env GOMODCACHE)" >> $GITHUB_ENV
+
       - name: Set up cache
         uses: actions/cache@v3
         with:
           path: |
             ${{ env.cache }}
             ${{ env.modcache }}
-            ${{ env.lintcache }}
           key: lint-${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             lint-${{ runner.os }}-go-
