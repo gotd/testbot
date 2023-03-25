@@ -1,4 +1,4 @@
-module github.com/gotd/echobot
+module github.com/gotd/testbot
 
 go 1.20
 

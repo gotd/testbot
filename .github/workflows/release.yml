@@ -51,7 +51,7 @@ jobs:
       - name: Go build
         env:
           CGO_ENABLED: 0
-        run: go build -v ./cmd/bot
+        run: go build -v ./cmd/testbot
 
       - name: Image build
         uses: docker/build-push-action@v4

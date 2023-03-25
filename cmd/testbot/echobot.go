@@ -1,1 +1,1 @@
-package echobot
+package testbot

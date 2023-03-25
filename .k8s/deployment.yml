@@ -2,32 +2,34 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: gotd-sandbox
-  name: echobot
+  name: testbot
   labels:
-    app: echobot
+    app: testbot
 spec:
   strategy:
     type: Recreate
   replicas: 1
   selector:
     matchLabels:
-      app: echobot
+      app: testbot
   template:
     metadata:
       labels:
-        app: echobot
+        app: testbot
     spec:
       volumes:
         - name: cache
-          emptyDir: { }
+          emptyDir:
+            sizeLimit: 100Mi
       containers:
         - name: bot
-          image: ghcr.io/gotd/echobot:main
+          image: ghcr.io/gotd/testbot:main
           resources:
             requests:
-              cpu: 500m
+              cpu: 100m
               memory: 64M
             limits:
+              cpu: 400m
               memory: 128M
           env:
             - name: HOME
@@ -35,17 +37,17 @@ spec:
             - name: BOT_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: bot
+                  name: testbot
                   key: BOT_TOKEN
             - name: APP_ID
               valueFrom:
                 secretKeyRef:
-                  name: bot
+                  name: testbot
                   key: APP_ID
             - name: APP_HASH
               valueFrom:
                 secretKeyRef:
-                  name: bot
+                  name: testbot
                   key: APP_HASH
           volumeMounts:
             - mountPath: /cache
