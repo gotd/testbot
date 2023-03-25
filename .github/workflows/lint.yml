@@ -1,0 +1,48 @@
+name: Lint
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  golangci-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.19.x"
+          cache: true
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v3.4.0
+        with:
+          version: latest
+          args: --timeout 5m
+          skip-go-installation: true
+          skip-pkg-cache: true
+          skip-build-cache: true
+
+  # Check if there are any dirty changes after go mod tidy
+  check-mod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20.x"
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download && go mod tidy
+
+      - name: Check git diff
+        run: git diff --exit-code

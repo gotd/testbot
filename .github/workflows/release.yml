@@ -1,0 +1,99 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    environment: prod
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      KUBECONFIG: /tmp/kubeconfig
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20.x"
+          cache: true
+
+      - name: Docker log in
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=ref,event=pr
+            type=edge,branch=main
+            type=sha
+
+      - name: Go build
+        env:
+          CGO_ENABLED: 0
+        run: go build -v ./cmd/bot
+
+      - name: Image build
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Get short commit SHA
+        id: var
+        shell: bash
+        run: |
+          echo "::set-output name=sha::$(git rev-parse --short HEAD)"
+
+      - name: Generate deployment with SHA version
+        run: sed 's/:main/:sha-${{ steps.var.outputs.sha }}/g' .k8s/deployment.yml > .k8s/deployment.release.yml
+
+      - name: Set up kubectl cache
+        uses: actions/cache@v3
+        with:
+          path: /tmp/kubectl
+          key: kubectl-v1.26.3
+
+      - name: Check kubectl
+        id: "kubectl"
+        uses: andstor/file-existence-action@v2
+        with:
+          files: /tmp/kubectl
+
+      - name: Download kubectl
+        if: steps.kubectl.outputs.files_exists != 'true'
+        run: |
+          wget -O /tmp/kubectl "https://dl.k8s.io/release/v1.26.3/bin/linux/amd64/kubectl"
+          chmod +x /tmp/kubectl
+
+      - name: Setup kubeconfig
+        env:
+          KUBE: ${{ secrets.KUBE }}
+        run: .k8s/kubeconfig.sh
+
+      - name: Deploy
+        run: |
+          /tmp/kubectl apply -f .k8s/deployment.release.yml
+          /tmp/kubectl -n faster rollout status deployment/bot
