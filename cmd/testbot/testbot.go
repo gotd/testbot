@@ -31,6 +31,7 @@ func run(ctx context.Context, lg *zap.Logger) (rerr error) {
 	if token == "" {
 		return errors.New("no BOT_TOKEN provided")
 	}
+
 	// Setting up session storage.
 	cacheDir := "/cache"
 	sessionDir := filepath.Join(cacheDir, ".td")
