@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/go-faster/errors v0.6.1
 	github.com/go-faster/yamlx v0.4.2
-	github.com/gotd/td v0.80.0
+	github.com/gotd/td v0.81.0
 	go.etcd.io/bbolt v1.3.7
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.24.0
