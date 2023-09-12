@@ -46,7 +46,7 @@ jobs:
             lint-${{ runner.os }}-go-
 
       - name: Docker log in
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
